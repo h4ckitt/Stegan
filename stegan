@@ -1,0 +1,114 @@
+#!/bin/bash
+RED='\033[1;31m'
+YELLOW='\033[1;33m'
+GREEN='\033[1;32m'
+NC='\033[0m'
+i=0
+err=0
+pass=0
+[ $# -gt 0 ] || {
+echo "This Is Stegan, Your Main Plug For Hiding Files Behind Images"
+echo ""
+echo -e "${YELLOW}Info: No Arguments Detected, Entering Interactive Mode${NC}"
+echo ""
+i=1
+}
+
+[ $i -eq 1 ] || {
+	echo "Do Something."
+}
+
+while [ $pass -eq 0 ]; do
+if [ $err -eq 1 ]; then
+	clear
+	echo -e "${RED}That's Not A Valid File Bro.${NC}"
+	echo ""
+fi
+if [ $err -eq 2 ]; then
+	clear
+	echo -e "${RED}That's Not Even An Image Bro${NC}"
+	echo ""
+fi
+
+
+echo "Enter The Path To Your Image Folder Bro : "
+echo "(Don't Bother About /home/...... We'll Append That For You)"
+echo ""
+echo -n ">$HOME/"
+read -r image
+image="$HOME/$image"
+
+[ -f $image ] || {
+	err=1
+	continue
+}
+[[ ${image##*.} =~ jpg|png|jpeg|gif|bmp ]] || {
+	err=2
+	continue
+}
+pass=1
+done
+echo ""
+pass=0
+
+while [ $pass -eq 0 ]; do
+echo "Enter The Path To The Folder Or Zip You Wanna Hide Bro : "
+echo "(Don't Bother About /home/...... I'll Append That For You)"
+echo ""
+echo -n ">$HOME/"
+read -r file
+file="$HOME/$file"
+echo "$file"
+
+if [ -f "$file" ]; then
+	echo -e "${GREEN}Ahh, It's A Zip File, Less Stress.${NC}"
+	if [[ ${file##*.} =~ zip ]]; then
+		break
+	fi
+elif [ -d "$file" ]; then
+	archive=1
+	echo -e "${YELLOW}Folder Detected: I'm Gonna Go Ahead And Compress It Now."
+	echo -e "If You Want It Password Protected, Enter Your Password Else Leave Blank:${NC}"
+	echo -n "> "
+	read -r password
+	break
+else
+	clear
+	echo -e "${RED}Nah, That Ain't A Valid File/Folder Bro${NC}"
+	continue
+fi
+
+done
+
+if [ ! -z $archive ]; then
+	echo -e "${YELLOW}Info: Compressing Folder"
+	fn=${file##*/}
+	if [ -z $Password ]; then
+		zip -P $password -r ${fn%.*/}.zip $file >/dev/null 2>&1
+	else
+		zip -r ${fn%.*}.zip $file >/dev/null 2>&1
+	fi
+	echo -e "${GREEN}Info: Finished Compression${NC}"
+	zip=${fn%.*}.zip
+else
+	zip=$file
+fi
+
+while : ; do
+echo "Choose New Name For Output File"
+echo "(Note, Extension Has To Be Same As That Of Original Image)"
+echo -n "> "
+read -r output
+
+if [[ "${image##*.}" != "${output##*.}" ]]; then
+	clear
+	echo -e "${RED}The Output Extension Doesn't Seem To Be Same As Original File's${NC}"
+else
+	break
+fi
+done
+
+
+echo -e "${YELLOW}Info: Proceeding To Hiding File Behind Specified Image${NC}"
+cat "$image" "$zip" > "$output"
+echo -e "${GREEN}Done"
